@@ -1,73 +1,71 @@
 import random
 
-# Global lists to store lottery tickets and user purchases
-lottery_tickets = []
-user_tickets = {}
+def admin_input():
+    """Admin enters the numbers of the lottery tokens."""
+    while True:
+        try:
+            tokens = input("Admin: Enter lottery tokens separated by spaces: ").strip().split()
+            if not tokens:
+                print("Please enter at least one token.")
+                continue
+            return tokens
+        except ValueError:
+            print("Invalid input. Please try again.")
 
+def user_participation(tokens):
+    """Users buy lottery tokens."""
+    user_data = {}
+    print("\nUsers can now buy lottery tokens!")
 
-# Function to add lottery tickets
-def add_lottery_tickets():
-    global lottery_tickets
-    tickets = input("Admin: Enter the lottery ticket numbers separated by spaces: ").split()
-    lottery_tickets = [int(ticket) for ticket in tickets]
-    print(f"Lottery tickets added: {lottery_tickets}")
+    while True:
+        user_name = input("Enter your name (or 'done' to finish buying): ").strip()
+        if user_name.lower() == 'done':
+            break
 
+        print(f"Available tokens: {tokens}")
+        token_choices = input(f"{user_name}, choose tokens from the available list (separated by spaces): ").strip().split()
 
-# Function for users to buy tickets
-def buy_tickets():
-    global user_tickets
-    name = input("Enter your name: ")
-    print(f"Available tickets: {lottery_tickets}")
-    chosen_tickets = input(f"{name}, enter the ticket numbers you want to buy (separated by spaces): ").split()
-    chosen_tickets = [int(ticket) for ticket in chosen_tickets]
-
-    for ticket in chosen_tickets:
-        if ticket not in lottery_tickets:
-            print(f"Ticket {ticket} is not available or already purchased.")
+        # Validate each token
+        invalid_tokens = [t for t in token_choices if t not in tokens]
+        if invalid_tokens:
+            print(f"Invalid or unavailable tokens: {', '.join(invalid_tokens)}. Try again!")
             continue
-        # Add tickets to the user's list
-        user_tickets.setdefault(name, []).append(ticket)
-        # Remove the ticket from the available tickets
-        lottery_tickets.remove(ticket)
 
-    print(f"{name} purchased tickets: {user_tickets[name]}")
-    print(f"Remaining tickets: {lottery_tickets}")
+        # Assign valid tokens to the user
+        for token in token_choices:
+            if user_name in user_data:
+                user_data[user_name].append(token)
+            else:
+                user_data[user_name] = [token]
+            tokens.remove(token)  # Remove the token from available list
 
+        print(f"{user_name} has successfully purchased tokens: {', '.join(token_choices)}.\n")
 
-# Function to pick a random winner
-def pick_winner():
-    if not user_tickets:
-        print("No users have purchased tickets. No winner can be chosen.")
+        if not tokens:
+            print("All tokens have been sold!")
+            break
+
+    return user_data
+
+def pick_winner(user_data):
+    """Randomly pick a winning token and determine the winner."""
+    if not user_data:
+        print("No participants in the lottery. No winner can be selected.")
         return
 
-    # Create a combined list of all purchased tickets
-    all_purchased_tickets = [(user, ticket) for user, tickets in user_tickets.items() for ticket in tickets]
-    winner = random.choice(all_purchased_tickets)
-    print(f"The winning ticket is {winner[1]}, and the winner is {winner[0]}!")
+    all_tokens = [(user, token) for user, tokens in user_data.items() for token in tokens]
+    winner = random.choice(all_tokens)
+    print("\n🎉 Lottery Winner Announcement 🎉")
+    print(f"Winning Token: {winner[1]}")
+    print(f"Winner: {winner[0]}")
 
-
-# Main function to run the lottery system
 def lottery_system():
-    while True:
-        print("\n--- Lottery System ---")
-        print("1. Add lottery tickets (Admin)")
-        print("2. Buy lottery tickets (User)")
-        print("3. Pick a winner")
-        print("4. Exit")
+    """Main function to manage the lottery system."""
+    print("Welcome to the Lottery System!\n")
 
-        choice = input("Enter your choice: ")
-        if choice == '1':
-            add_lottery_tickets()
-        elif choice == '2':
-            buy_tickets()
-        elif choice == '3':
-            pick_winner()
-        elif choice == '4':
-            print("Exiting the lottery system.")
-            break
-        else:
-            print("Invalid choice. Please try again.")
+    tokens = admin_input()
+    user_data = user_participation(tokens)
+    pick_winner(user_data)
 
-
-# Run the lottery system
+# Start the Lottery System
 lottery_system()
